@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>waterfall</title>
+    <style type="text/css">
+        body{ margin:0 auto;}
+        div#container{ width:auto; height:auto;
+            border:solid 3px #f1f1f1; position:relative;
+            margin:0 auto;}
+        div.module{ width:150px; height:auto; padding:2px;
+            overflow:hidden; position:absolute;}
+        div img{ width:150px; border:none; float:left;}
+        div span{ width:100%; height:30px; line-height:30px;
+            text-align:center; display:block; float:left;}
+    </style>
+    <script type="text/javascript" src="../javascript/Ajax.js"></script>
+    <script type="text/javascript">
+        function initContainerCss(){
+            var _counter=0;
+            var _w=0;
+            if(document.body){
+                if(document.body.clientWidth>0){
+                    _w=document.body.clientWidth;
+                }else{
+                    _w=document.documentElement.clientWidth;
+                }
+            }else{
+                _w=document.documentElement.clientWidth;
+            }
+            _counter=Math.floor(_w/154);
+            document.getElementById("container").style.width=_counter*154+"px";
+            return _counter;
+        }
+
+        function resetContainerHeight(_arr){
+            var _max=_arr[0];
+            for(var i=1;i<_arr.length;i++){
+                if(_max<_arr[i]){
+                    _max=_arr[i];
+                }
+            }
+            document.getElementById("container").style.height=_max+"px";
+        }
+
+        function minHeight(_arr){
+            var _min=_arr[0];
+            var _index=0;
+            for(var i=1;i<_arr.length;i++){
+                if(_min>_arr[i]){
+                    _min=_arr[i];
+                    _index=i;
+                }
+            }
+            return _index;
+        }
+
+        function waterfall(_arr,_s){
+            var _list=document.getElementById("container").children;
+            var _index=0;
+            for(var i=_s-1;i<_list.length;i++){
+                _index=minHeight(_arr);//找到最小值
+                _list[i].style.left=154*_index+"px";
+                _list[i].style.top=_arr[_index]+"px";
+                _arr[_index]+=_list[i].offsetHeight;//将当前图片的高度保存到数组与之对应的列的索引值中
+            }
+            resetContainerHeight(_arr);//设置外边框的高度
+        }
+
+        function checkImgComplete(_arr,_s){
+            var _timer=0;
+            var _container=document.getElementById("container");
+            function checking(){
+                window.clearTimeout(_timer);
+                var _complete=true;
+                for(var i=_s-1;i<_container.children.length;i++){
+                    if(!_container.children[i].children[0].complete){//complete：img标签自带的一个属性。图片加载完成该属性自动变为true，否则false
+                        _complete=false;
+                        break;
+                    }
+                }
+                if(_complete){
+                    waterfall(_arr,_s);//开始瀑布流布局
+                }else{
+                    _timer=setTimeout(checking,60);
+                }
+            }
+            checking();
+        }
+
+        function loadImage(_s,_e){
+//            ajaxRequest("post","waterfall.json",true,null,function(data){
+//                var _module=null,_img=null,_span=null;
+//                var _container=document.getElementById("container");
+//                var data=JSON.parse(data);
+//                for(var i=_s;i<=10;i++){
+//                    _module=document.createElement("div");
+//                    _module.className="module";
+//                    _img=document.createElement("img");
+//                    _img.src="images/"+data["images"][i]+".jpg";
+//                    _span=document.createElement("span");
+//                    _span.innerText="H51610WATERFALL";
+//                    _module.appendChild(_img);
+//                    _module.appendChild(_span);
+//                    _container.appendChild(_module);
+//                }
+//                checkImgComplete(_arr,_s);//检测图片是否加载完成
+//            });
+            var _module=null,_img=null,_span=null;
+            var _container=document.getElementById("container");
+            for(var i=_s;i<=_e && i<=75;i++){
+                _module=document.createElement("div");
+                _module.className="module";
+                _img=document.createElement("img");
+                _img.src="images/"+i+".jpg";
+                _span=document.createElement("span");
+                _span.innerText="H51610WATERFALL";
+                _module.appendChild(_img);
+                _module.appendChild(_span);
+                _container.appendChild(_module);
+            }
+            checkImgComplete(_arr,_s);//检测图片是否加载完成
+        }
+
+        function initArray(_arr){
+            for(var i=0;i<_arr.length;i++){
+                _arr[i]=0;
+            }
+        }
+
+        var _s=1,_e=40;
+        var _arr=null;
+        window.onload=function(){
+            var _counter=initContainerCss();
+            _arr=new Array(_counter);//记录每一行的适时的高度。
+            initArray(_arr);//初始化一个数组
+            loadImage(_s,_e);//开始加载图片
+        }
+
+        function isBottom(){
+            var _h=document.getElementById("container").offsetHeight;
+            var s_t=document.body.scrollTop||document.documentElement.scrollTop;//获取滚动条滚动距离的时候使用document.body.scrollTop
+            var c_t=document.documentElement.clientHeight;
+            console.log(c_t,s_t,_h)
+            if(_h==s_t+c_t){
+                _s=_e+1;
+                _e=_e+40;
+                loadImage(_s,_e);
+            }
+        }
+        window.onscroll=function(){
+            isBottom();
+        }
+        window.onresize=function(){
+            var _counter=initContainerCss();
+            _arr=new Array(_counter);
+            initArray(_arr);
+            waterfall(_arr,1);
+        }
+    </script>
+</head>
+<body>
+    <div id="container">
+
+    </div>
+</body>
+</html>
